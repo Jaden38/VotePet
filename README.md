@@ -41,4 +41,4 @@ L'application totale sera déployée dans une stack composée de 5 services :
 
 # Legal
 
-- © 2022 Tom Avenel under CC BY-SA 4.0
+- © 2023 Tom Avenel under CC BY-SA 4.0
