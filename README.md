@@ -19,7 +19,7 @@ Une fois déployée, l'application expose :
 - une UI pour afficher les résultats (conteneur `result`) accessible depuis le reverse-proxy : <http://results.votes.fr/>
 
 
-**Attention : le reverse-proxy a besoin des entrées DNS suivantes pour fonctionner (à ajouter dans le fichier /etc/hosts sur Linux/MacOS ) :**
+**Attention : le reverse-proxy a besoin des entrées DNS suivantes pour fonctionner à ajouter dans le fichier hosts : /etc/hosts sous Linux, /private/etc/hosts sous MacOS, C:\Windows\System32\drivers\etc\hosts sous Windows.**
 
 ```
 127.0.0.1 vote.votes.fr
