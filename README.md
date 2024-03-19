@@ -6,12 +6,16 @@ abstract: Le but de ce TP est d'isoler et de déployer une application dans une 
 
 # Présentation de l'application
 
-L'application est composée de 4 composants : `vote`, `result`, `worker` et `proxy`.
+L'application est composée de 6 composants : `vote`, `result`, `worker`, `db`, `redis` et `proxy`.
 
+Seuls les 4 composants `vote`, `result`, `worker` et `proxy` contiennent du code spécifique à ce projet (`db` et `redis` sont des composants génériques déjà existants et uniquement à déployer).
+
+- `proxy` est un serveur Nginx servant de reverse-proxy vers le front des resultats et des votes.
 - `vote` est un composant hébergeant une UI permettant de voter
 - `result` est un composant hébergeant une UI affichant les résultats de vote
+- `redis` est un message broker qui collecte les votes et les envoie au `worker`
 - `worker` est un composant gérant le backend des votes
-- `proxy` est un serveur Nginx servant de reverse-proxy vers le front des resultats.
+- `db` est une base de données `postgres` persistant les votes.
 
 Une fois déployée, l'application expose :
 
@@ -28,7 +32,7 @@ Une fois déployée, l'application expose :
 
 # Spécifications de déploiement
 
-L'application totale sera déployée dans une stack composée de 5 services :
+L'application totale sera déployée dans une stack composée de 6 services :
 
 - un service `proxy` (reverse-proxy Nginx) buildé depuis `./proxy` :
   + Lié au port `80` de l'hôte
@@ -38,14 +42,16 @@ L'application totale sera déployée dans une stack composée de 5 services :
   + Le conteneur doit s'appeler `vote`.
 - un service `result` buildé depuis `./result` (tourne sur le port `80`).
   + Le web serveur tourne sur le port `80` dans le conteneur.
-  + Le port `5858` doit être exposé sur le même port de l'hôte.
   + Le conteneur doit s'appeler `results`.
-- un service `worker` buildé depuis `./worker`
-- un message broker nommé `redis` utilisant l’image `redis:alpine` pour gérer les interactions entre les composants : ce conteneur organise les échanges de messages entre tous les autres composants de l'application.
-  + Le port `6379` doit être exposé sur le même port de l'hôte.
+- un service `worker` buildé depuis `./worker` qui récupère les messages de `redis` et les envoie dans la `db`
+- un message broker nommé `redis` utilisant l’image `redis:alpine` pour gérer les interactions entre les composants : ce conteneur organise les échanges de messages entre le service `vote` et le service `worker`
+  + Le port `6379` doit être accessible à `vote` et `worker`
+  + Le script `./healthchecks/redis.sh` permet de monitorer l'état de l'application dans le conteneur
 - une base de données nommée `db` utilisant l’image `postgres:9.4` pour persister les votes
   + La base de données stocke les données dans le répertoire `/var/lib/postgresql/data`.
   + La base de données requiert deux variables d’environment au démarrage: `POSTGRES_USER="postgres"` et `POSTGRES_PASSWORD="postgres"`.
+  + Le port `5432` doit être accessible à `worker` et `result`
+  + Le script `./healthchecks/postgres.sh` permet de monitorer l'état de l'application dans le conteneur
 - Les sources des applications `vote` et `result` doivent être accessibles dans le répertoire `/app` dans le conteneur.
 - Si les sources sont modifiées dans le dépôt de code, on ne créera pas de nouvelle image du conteneur (accès depuis l'extérieur).
 - Seuls les services `vote` et `result` sont des services _métier_ :
@@ -55,4 +61,4 @@ L'application totale sera déployée dans une stack composée de 5 services :
 
 # Legal
 
-- © 2023 Tom Avenel under CC BY-SA 4.0
+- © 2024 Tom Avenel under CC BY-SA 4.0
