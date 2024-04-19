@@ -1,14 +1,73 @@
+version: '3.7'
+
 services:
   proxy:
-    …
+    container_name: proxy
+    build: ./proxy
+    ports:
+      - "80:80"
+    volumes:
+      - ./healthchecks:/healthchecks
+    depends_on:
+      - vote
+      - result
+
   vote:
-    …
+    container_name: vote
+    build: ./vote
+    volumes:
+      - ./vote:/app
+    ports:
+      - "80"
+    depends_on:
+      - redis
+
+  vote2:
+      container_name: vote2
+      build: ./vote
+      volumes:
+        - ./vote:/app
+      ports:
+        - "80"
+      depends_on:
+        - redis
+        
   result:
-    …
+    container_name: results
+    build: ./result
+    volumes:
+      - ./result:/app
+    ports:
+      - "80"
+    depends_on:
+      - redis
+      - db
+
   worker:
-    …
-  db:
-    …
+    container_name: worker
+    build: ./worker
+    depends_on:
+      - redis
+      - db
+
   redis:
-    …
-  
+    container_name: redis
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./healthchecks:/healthchecks
+
+  db:
+    container_name: db
+    image: postgres:9.4
+    environment:
+      POSTGRES_USER: "postgres"
+      POSTGRES_PASSWORD: "postgres"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
